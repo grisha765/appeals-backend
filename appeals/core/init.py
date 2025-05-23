@@ -23,7 +23,8 @@ def run_server():
         "appeals.core.init:app",
         host=Config.api_host,
         port=Config.api_port,
-        log_level="info"
+        log_level="info",
+        reload=Config.reload
     )
 
 
