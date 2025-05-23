@@ -30,5 +30,42 @@ class PingBody(BaseModel):
         return self
 
 
+class ConversionStatus(str, Enum):
+    unviewed    = "unviewed"
+    accepted    = "accepted"
+    in_progress = "progress"
+    executed    = "executed"
+    closed      = "closed"
+
+
+class ConversionCreateBody(BaseModel):
+    user_id: int = Field(..., description="Owner of the conversion")
+    head: str = Field(..., description="Short title")
+    text: str = Field(..., description="Full text")
+    status: ConversionStatus = Field(default=ConversionStatus.unviewed)
+
+
+class ConversionStatusUpdateBody(BaseModel):
+    status: ConversionStatus
+
+
+class ConversionBrief(BaseModel):
+    id: int
+    head: str
+    status: ConversionStatus
+
+
+class ConversionDetail(BaseModel):
+    id: int
+    user_id: int
+    head: str
+    text: str
+    status: ConversionStatus
+
+
+class ConversionText(BaseModel):
+    text: str
+
+
 if __name__ == "__main__":
     raise RuntimeError("This module should be run only via main.py")
