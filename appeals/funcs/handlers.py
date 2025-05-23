@@ -1,6 +1,24 @@
+from typing import List
+from fastapi import HTTPException
 from appeals.db.ping import get_number, set_number
-from appeals.core.schemas import PingBody, PingResponse
-
+from appeals.core.schemas import (
+    PingBody,
+    PingResponse,
+    ConversionCreateBody,
+    ConversionStatusUpdateBody,
+    ConversionBrief,
+    ConversionDetail,
+    ConversionText
+)
+from appeals.db.conversion import (
+    create_conversion,
+    get_all_conversions,
+    get_conversions,
+    view_conversion,
+    set_status_conversion,
+    del_conversion,
+    get_conversion
+)
 
 async def ping_post_handler(
     body: PingBody
@@ -25,6 +43,81 @@ async def ping_post_handler(
 async def ping_get_handler() -> PingResponse:
     number = await get_number()
     return PingResponse(Pong=str(number))
+
+
+async def create_conversion_handler(body: ConversionCreateBody) -> List[ConversionDetail]:
+    conv = await create_conversion(
+        user_id=body.user_id,
+        head=body.head,
+        text=body.text,
+        status=body.status.value,
+    )
+    return [ConversionDetail(**conv)]
+
+
+async def get_all_conversions_handler() -> List[ConversionDetail]:
+    convs = await get_all_conversions()
+    return [ConversionDetail(**conv) for conv in convs]
+
+
+async def get_user_conversions_handler(user_id: int) -> List[ConversionBrief]:
+    convs = await get_conversions(user_id)
+    return [ConversionBrief(**conv) for conv in convs]
+
+
+async def view_conversion_handler(
+        user_id: int,
+        conversion_id: int
+) -> List[ConversionText]:
+    text = await view_conversion(
+        user_id,
+        conversion_id
+    )
+    if text is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversion not found"
+        )
+    return [ConversionText(text=text)]
+
+
+async def set_status_conversion_handler(
+    user_id: int,
+    conversion_id: int,
+    body: ConversionStatusUpdateBody,
+) -> List[ConversionDetail]:
+    updated = await set_status_conversion(
+        user_id,
+        conversion_id,
+        body.status.value
+    )
+    if not updated:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversion not found"
+        )
+
+    conv = await get_conversion(
+        user_id,
+        conversion_id
+    )
+    return [ConversionDetail(**conv)]
+
+
+async def del_conversion_handler(
+        user_id: int,
+        conversion_id: int
+):
+    deleted = await del_conversion(
+        user_id,
+        conversion_id
+    )
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversion not found"
+        )
+    return
 
 
 if __name__ == "__main__":
