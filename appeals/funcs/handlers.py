@@ -1,10 +1,9 @@
-from fastapi import  Body
 from appeals.db.ping import get_number, set_number
 from appeals.core.schemas import PingBody, PingResponse
 
 
 async def ping_post_handler(
-    body: PingBody = Body(...)
+    body: PingBody
 ) -> PingResponse:
     number = await get_number()
 
@@ -15,7 +14,7 @@ async def ping_post_handler(
             number -= 1
         case "reset":
             number = 0
-        case "int":
+        case "set":
             assert body.value is not None
             number = body.value
 
