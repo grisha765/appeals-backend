@@ -1,4 +1,4 @@
-from typing import Optional, Literal
+from enum import Enum
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -6,28 +6,27 @@ class PingResponse(BaseModel):
     Pong: str
 
 
+class Op(str, Enum):
+    plus  = "plus"
+    minus = "minus"
+    reset = "reset"
+    set  = "set"
+
+
 class PingBody(BaseModel):
-    op: Literal[
-    "plus",
-    "minus",
-    "reset",
-    "int"
-] = Field(
-        default="plus",
+    op: Op = Field(
+        default=Op.plus,
         description="Counter operation"
     )
-    value: Optional[int] = Field(
+    value: int | None = Field(
         default=None,
-        description="Number for op=‘int’; ignored otherwise",
+        description="Used only for op='int'"
     )
 
     @model_validator(mode="after")
-    def validate_int(self) -> "PingBody":
-        if self.op == "int":
-            if self.value is None:
-                raise ValueError("The ‘value’ field is required for op='int'")
-        elif self.value is not None:
-            raise ValueError("The ‘value’ field is only used when op='int'")
+    def validate_int(self):
+        if self.op is Op.set and self.value is None:
+            raise ValueError("The ‘value’ field is required for op='set'")
         return self
 
 
