@@ -1,13 +1,14 @@
 from typing import List
-from appeals.db.models import Conversion
+from typing import List, Sequence
+from tortoise.transactions import in_transaction
+from appeals.db.models import Conversion, ConversionFile
 
 
 async def create_conversion(
         user_id: int,
         head: str,
         text: str,
-        status:
-        str = "unviewed"
+        status: str = "unviewed"
 ) -> dict:
     conversion = await Conversion.create(
         user_id=user_id,
@@ -23,6 +24,31 @@ async def create_conversion(
         "status": conversion.status,
     }
     return conversion_data
+
+
+async def add_files_to_conversion(
+    user_id: int,
+    conversion_id: int,
+    files: Sequence[dict],
+) -> bool:
+    conversion = await Conversion.filter(
+        id=conversion_id,
+        user_id=user_id
+    ).first()
+
+    if not conversion:
+        return False
+
+    async with in_transaction() as tx:
+        for f in files:
+            await ConversionFile.create(
+                conversion=conversion,
+                filename=f["filename"],
+                content_type=f["content_type"],
+                data=f["data"],
+                using_db=tx,
+            )
+    return True
 
 
 async def get_all_conversions() -> List[dict]:
@@ -59,17 +85,44 @@ async def get_conversion(
     )
 
 
+async def get_conversion_file(
+    user_id: int,
+    conversion_id: int,
+    file_id: int,
+) -> ConversionFile | None:
+    return await ConversionFile.filter(
+        id=file_id,
+        conversion_id=conversion_id,
+        conversion__user_id=user_id
+    ).first()
+
+
 async def view_conversion(
         user_id: int,
         conversion_id: int
-) -> str:
+) -> dict:
     conversion = await Conversion.filter(
         id=conversion_id,
         user_id=user_id
-    ).first()
-    if conversion:
-        return conversion.text
-    return ''
+    ).prefetch_related("files").first()
+
+    if not conversion:
+        return {}
+
+    file_meta = [
+        {
+            "id": f.id,
+            "filename": f.filename,
+            "content_type": f.content_type,
+            "download_url": f"/users/{user_id}/conversions/{conversion_id}/files/{f.id}",
+        }
+        for f in conversion.files
+    ]
+
+    return {
+        "text": conversion.text,
+        "files": file_meta or None,
+    }
 
 
 async def set_status_conversion(
