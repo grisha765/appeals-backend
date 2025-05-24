@@ -1,0 +1,26 @@
+name: Run autotests
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths-ignore:
+      - 'readme.md'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/astral-sh/uv:python3.12-alpine
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        env:
+          TESTS: "True" 
+          DB_PATH: ":memory:"
+        run: uv run appeals
