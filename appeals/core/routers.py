@@ -1,4 +1,5 @@
 from typing import List
+from fastapi.responses import Response
 from appeals.funcs.handlers import ping_post_handler, ping_get_handler
 from appeals.core.schemas import (
     PingResponse,
@@ -8,9 +9,11 @@ from appeals.core.schemas import (
 )
 from appeals.funcs.handlers import (
     create_conversion_handler,
+    pin_file_conversion_handler,
     get_all_conversions_handler,
     get_user_conversions_handler,
     view_conversion_handler,
+    download_conversion_file_handler,
     set_status_conversion_handler,
     del_conversion_handler,
 )
@@ -40,6 +43,13 @@ def init_app(app):
             "response_model": List[ConversionDetail],
         },
         {
+            "path": "/users/{user_id}/conversions/{conversion_id}/files",
+            "endpoint": pin_file_conversion_handler,
+            "methods": ["POST"],
+            "summary": "Attach one or more files to an existing conversion",
+            "response_model": List[ConversionText],
+        },
+        {
             "path": "/conversions",
             "endpoint": get_all_conversions_handler,
             "methods": ["GET"],
@@ -59,6 +69,13 @@ def init_app(app):
             "methods": ["GET"],
             "summary": "Get the full text of a conversion",
             "response_model": List[ConversionText],
+        },
+        {
+            "path": "/users/{user_id}/conversions/{conversion_id}/files/{file_id}",
+            "endpoint": download_conversion_file_handler,
+            "methods": ["GET"],
+            "summary": "Download attached file",
+            "response_class": Response,
         },
         {
             "path": "/users/{user_id}/conversions/{conversion_id}/status",
