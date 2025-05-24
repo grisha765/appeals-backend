@@ -83,6 +83,53 @@ def view_conversion(logger, conversion_id):
         raise
 
 
+def attach_file_to_conversion(logger, conversion_id):
+    """
+    Test #6 (POST /users/1/conversions/{conversion_id}/files)
+    """
+    try:
+        files = {
+            "files": ("test.txt", b"Hello, world!", "text/plain")
+        }
+        response = client.post(f"/users/1/conversions/{conversion_id}/files", files=files)
+        assert response.status_code == 200, "Expected status 200 on /files POST."
+        data = response.json()
+        assert len(data) == 1, "Expected a single ConversionText item."
+        conv_text = data[0]
+        assert conv_text["text"] == "The text of the conversion", "Conversion text mismatch."
+        assert "files" in conv_text, "Expected 'files' in response."
+        assert len(conv_text["files"]) == 1, "Expected exactly one file attached."
+        file_meta = conv_text["files"][0]
+        assert file_meta["filename"] == "test.txt", "Filename mismatch."
+        assert file_meta["content_type"] == "text/plain", "Content type mismatch."
+        logger.info("Test passed! #5 (attach file)")
+        return file_meta["id"]
+    except AssertionError as e:
+        logger.error(f"Test failed! #5 (attach file): {e}")
+        raise
+
+
+def download_conversion_file(logger, conversion_id, file_id):
+    """
+    Test #7 (GET /users/1/conversions/{conversion_id}/files/{file_id})
+    """
+    try:
+        response = client.get(f"/users/1/conversions/{conversion_id}/files/{file_id}")
+        assert response.status_code == 200, "Expected status 200 on /files GET."
+        assert response.content == b"Hello, world!", "File content mismatch."
+
+        content_type_header = response.headers["Content-Type"]
+        assert content_type_header.startswith("text/plain"), \
+            f"Content-Type mismatch: {content_type_header}"
+
+        disposition = response.headers["Content-Disposition"]
+        assert 'filename="test.txt"' in disposition, "Content-Disposition filename mismatch."
+        logger.info("Test passed! #6 (download file)")
+    except AssertionError as e:
+        logger.error(f"Test failed! #6 (download file): {e}")
+        raise
+
+
 def delete_conversion(logger, conversion_id):
     """
     Test #5 (DELETE /users/1/conversions/{conversion_id})
@@ -90,9 +137,9 @@ def delete_conversion(logger, conversion_id):
     try:
         response = client.delete(f"/users/1/conversions/{conversion_id}")
         assert response.status_code == 204, "Expected status 204 on DELETE."
-        logger.info("Test passed! #5 (delete conversion)")
+        logger.info("Test passed! #7 (delete conversion)")
     except AssertionError as e:
-        logger.error(f"Test failed! #5 (delete conversion): {e}")
+        logger.error(f"Test failed! #7 (delete conversion): {e}")
         raise
 
 
@@ -103,6 +150,8 @@ def test_conversions():
     get_user_conversions(logger, conversion_id)
     update_conversion_status(logger, conversion_id)
     view_conversion(logger, conversion_id)
+    file_id = attach_file_to_conversion(logger, conversion_id)
+    download_conversion_file(logger, conversion_id, file_id)
     delete_conversion(logger, conversion_id)
 
     logger.info("All conversions tests passed!")
