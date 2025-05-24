@@ -1,5 +1,6 @@
-from typing import List
-from fastapi import HTTPException
+from typing import List, Sequence
+from fastapi import HTTPException, UploadFile, File
+from fastapi.responses import Response
 from appeals.db.ping import get_number, set_number
 from appeals.core.schemas import (
     PingBody,
@@ -12,13 +13,16 @@ from appeals.core.schemas import (
 )
 from appeals.db.conversion import (
     create_conversion,
+    add_files_to_conversion,
     get_all_conversions,
     get_conversions,
     view_conversion,
     set_status_conversion,
     del_conversion,
-    get_conversion
+    get_conversion,
+    get_conversion_file
 )
+
 
 async def ping_post_handler(
     body: PingBody
@@ -55,6 +59,35 @@ async def create_conversion_handler(body: ConversionCreateBody) -> List[Conversi
     return [ConversionDetail(**conv)]
 
 
+async def pin_file_conversion_handler(
+    user_id: int,
+    conversion_id: int,
+    files: Sequence[UploadFile] = File(..., description="One or more files"),
+) -> List[ConversionText]:
+    if not files:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+
+    files_payload = [
+        {
+            "filename": up.filename,
+            "content_type": up.content_type or "application/octet-stream",
+            "data": await up.read(),
+        }
+        for up in files
+    ]
+
+    success = await add_files_to_conversion(
+        user_id=user_id,
+        conversion_id=conversion_id,
+        files=files_payload,
+    )
+    if not success:
+        raise HTTPException(status_code=404, detail="Conversion not found")
+
+    conv = await view_conversion(user_id, conversion_id)
+    return [ConversionText(**conv)]
+
+
 async def get_all_conversions_handler() -> List[ConversionDetail]:
     convs = await get_all_conversions()
     return [ConversionDetail(**conv) for conv in convs]
@@ -69,16 +102,29 @@ async def view_conversion_handler(
         user_id: int,
         conversion_id: int
 ) -> List[ConversionText]:
-    text = await view_conversion(
-        user_id,
-        conversion_id
+    conv = await view_conversion(user_id, conversion_id)
+    if conv is None:
+        raise HTTPException(status_code=404, detail="Conversion not found")
+    return [ConversionText(**conv)]
+
+
+async def download_conversion_file_handler(
+    user_id: int,
+    conversion_id: int,
+    file_id: int,
+):
+    file = await get_conversion_file(user_id, conversion_id, file_id)
+    if file is None:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="{file.filename}"'
+    }
+    return Response(
+        content=file.data,
+        media_type=file.content_type,
+        headers=headers,
     )
-    if text is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Conversion not found"
-        )
-    return [ConversionText(text=text)]
 
 
 async def set_status_conversion_handler(
