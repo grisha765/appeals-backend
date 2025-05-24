@@ -1,5 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel, Field, model_validator
+from typing import Optional, List
 
 
 class PingResponse(BaseModel):
@@ -45,6 +46,13 @@ class ConversionCreateBody(BaseModel):
     status: ConversionStatus = Field(default=ConversionStatus.unviewed)
 
 
+class ConversionFileMeta(BaseModel):
+    id: int
+    filename: str
+    content_type: str
+    download_url: str
+
+
 class ConversionStatusUpdateBody(BaseModel):
     status: ConversionStatus
 
@@ -65,6 +73,7 @@ class ConversionDetail(BaseModel):
 
 class ConversionText(BaseModel):
     text: str
+    files: Optional[List[ConversionFileMeta]] = None
 
 
 if __name__ == "__main__":
