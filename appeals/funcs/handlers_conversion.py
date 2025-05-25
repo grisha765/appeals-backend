@@ -1,10 +1,14 @@
-from typing import List, Sequence
-from fastapi import HTTPException, UploadFile, File
+from typing import (
+    List,
+    Sequence
+)
+from fastapi import (
+    HTTPException,
+    UploadFile,
+    File
+)
 from fastapi.responses import Response
-from appeals.db.ping import get_number, set_number
 from appeals.core.schemas import (
-    PingBody,
-    PingResponse,
     ConversionCreateBody,
     ConversionStatusUpdateBody,
     ConversionBrief,
@@ -24,32 +28,9 @@ from appeals.db.conversion import (
 )
 
 
-async def ping_post_handler(
-    body: PingBody
-) -> PingResponse:
-    number = await get_number()
-
-    match body.op:
-        case "plus":
-            number += 1
-        case "minus":
-            number -= 1
-        case "reset":
-            number = 0
-        case "set":
-            assert body.value is not None
-            number = body.value
-
-    await set_number(number)
-    return PingResponse(Pong=str(number))
-
-
-async def ping_get_handler() -> PingResponse:
-    number = await get_number()
-    return PingResponse(Pong=str(number))
-
-
-async def create_conversion_handler(body: ConversionCreateBody) -> List[ConversionDetail]:
+async def create_conversion_handler(
+        body: ConversionCreateBody
+) -> List[ConversionDetail]:
     conv = await create_conversion(
         user_id=body.user_id,
         head=body.head,
@@ -62,10 +43,16 @@ async def create_conversion_handler(body: ConversionCreateBody) -> List[Conversi
 async def pin_file_conversion_handler(
     user_id: int,
     conversion_id: int,
-    files: Sequence[UploadFile] = File(..., description="One or more files"),
+    files: Sequence[UploadFile] = File(
+        ...,
+        description="One or more files"
+    ),
 ) -> List[ConversionText]:
     if not files:
-        raise HTTPException(status_code=400, detail="No files uploaded")
+        raise HTTPException(
+            status_code=400,
+            detail="No files uploaded"
+        )
 
     files_payload = [
         {
@@ -82,9 +69,15 @@ async def pin_file_conversion_handler(
         files=files_payload,
     )
     if not success:
-        raise HTTPException(status_code=404, detail="Conversion not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Conversion not found"
+        )
 
-    conv = await view_conversion(user_id, conversion_id)
+    conv = await view_conversion(
+        user_id,
+        conversion_id
+    )
     return [ConversionText(**conv)]
 
 
@@ -93,7 +86,9 @@ async def get_all_conversions_handler() -> List[ConversionDetail]:
     return [ConversionDetail(**conv) for conv in convs]
 
 
-async def get_user_conversions_handler(user_id: int) -> List[ConversionBrief]:
+async def get_user_conversions_handler(
+        user_id: int
+) -> List[ConversionBrief]:
     convs = await get_conversions(user_id)
     return [ConversionBrief(**conv) for conv in convs]
 
@@ -102,9 +97,15 @@ async def view_conversion_handler(
         user_id: int,
         conversion_id: int
 ) -> List[ConversionText]:
-    conv = await view_conversion(user_id, conversion_id)
+    conv = await view_conversion(
+        user_id,
+        conversion_id
+    )
     if conv is None:
-        raise HTTPException(status_code=404, detail="Conversion not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Conversion not found"
+        )
     return [ConversionText(**conv)]
 
 
@@ -113,9 +114,16 @@ async def download_conversion_file_handler(
     conversion_id: int,
     file_id: int,
 ):
-    file = await get_conversion_file(user_id, conversion_id, file_id)
+    file = await get_conversion_file(
+        user_id,
+        conversion_id,
+        file_id
+    )
     if file is None:
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(
+            status_code=404,
+            detail="File not found"
+        )
 
     headers = {
         "Content-Disposition": f'attachment; filename="{file.filename}"'
@@ -168,3 +176,4 @@ async def del_conversion_handler(
 
 if __name__ == "__main__":
     raise RuntimeError("This module should be run only via main.py")
+

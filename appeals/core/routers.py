@@ -1,13 +1,16 @@
 from typing import List
 from fastapi.responses import Response
-from appeals.funcs.handlers import ping_post_handler, ping_get_handler
 from appeals.core.schemas import (
     PingResponse,
     ConversionBrief,
     ConversionDetail,
     ConversionText
 )
-from appeals.funcs.handlers import (
+from appeals.funcs.handlers_ping import (
+    ping_post_handler,
+    ping_get_handler
+)
+from appeals.funcs.handlers_conversion import (
     create_conversion_handler,
     pin_file_conversion_handler,
     get_all_conversions_handler,

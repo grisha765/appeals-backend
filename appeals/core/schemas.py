@@ -1,8 +1,16 @@
 from enum import Enum
-from pydantic import BaseModel, Field, model_validator
-from typing import Optional, List
+from pydantic import (
+    BaseModel,
+    Field,
+    model_validator
+)
+from typing import (
+        Optional,
+        List
+)
 
 
+# ping schemas
 class PingResponse(BaseModel):
     Pong: str
 
@@ -31,6 +39,7 @@ class PingBody(BaseModel):
         return self
 
 
+# conversion schemas
 class ConversionStatus(str, Enum):
     unviewed    = "unviewed"
     accepted    = "accepted"
@@ -44,13 +53,6 @@ class ConversionCreateBody(BaseModel):
     head: str = Field(..., description="Short title")
     text: str = Field(..., description="Full text")
     status: ConversionStatus = Field(default=ConversionStatus.unviewed)
-
-
-class ConversionFileMeta(BaseModel):
-    id: int
-    filename: str
-    content_type: str
-    download_url: str
 
 
 class ConversionStatusUpdateBody(BaseModel):
@@ -69,6 +71,13 @@ class ConversionDetail(BaseModel):
     head: str
     text: str
     status: ConversionStatus
+
+
+class ConversionFileMeta(BaseModel):
+    id: int
+    filename: str
+    content_type: str
+    download_url: str
 
 
 class ConversionText(BaseModel):
