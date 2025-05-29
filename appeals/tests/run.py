@@ -5,9 +5,13 @@ from appeals.config import logging_config
 from appeals.tests.test_ping import test_ping
 from appeals.tests.test_conversions import test_conversions
 
+from fastapi.testclient import TestClient
+from appeals.core.init import app
+
 
 async def run():
     logging = logging_config.setup_logging(__name__)
+    client = TestClient(app)
 
     error_count = 0
     warning_count = 0
@@ -30,8 +34,8 @@ async def run():
     try:
         await init()
         logging.info(f'Start tests...')
-        test_ping()
-        test_conversions()
+        test_ping(client)
+        test_conversions(client)
     finally:
         logging.info(f'All tests completed! [Errors: {error_count}, Warnings: {warning_count}, Passed: {passed_count}]')
         await close()

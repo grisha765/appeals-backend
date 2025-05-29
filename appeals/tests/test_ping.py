@@ -1,12 +1,7 @@
 from appeals.config import logging_config
-from fastapi.testclient import TestClient
-from appeals.core.init import app
-
-client = TestClient(app)
-logger = logging_config.setup_logging(__name__)
 
 
-def ping_reset(logger):
+def ping_reset(logger, client):
     """
     Test #1 (POST /ping with {"op": "reset"})
     """
@@ -21,7 +16,7 @@ def ping_reset(logger):
         raise
 
 
-def ping_plus(logger):
+def ping_plus(logger, client):
     """
     Test #2 (POST /ping with {"op": "plus"})
     """
@@ -36,7 +31,7 @@ def ping_plus(logger):
         raise
 
 
-def ping_minus(logger):
+def ping_minus(logger, client):
     """
     Test #3 (POST /ping with {"op": "minus"})
     """
@@ -51,7 +46,7 @@ def ping_minus(logger):
         raise
 
 
-def ping_set(logger):
+def ping_set(logger, client):
     """
     Test #4 (POST /ping with {"op": "set", "value": 42})
     """
@@ -66,7 +61,7 @@ def ping_set(logger):
         raise
 
 
-def ping_get(logger):
+def ping_get(logger, client):
     """
     Test #5 (GET /ping)
     """
@@ -81,14 +76,14 @@ def ping_get(logger):
         raise
 
 
-def test_ping():
+def test_ping(client):
     logger = logging_config.setup_logging(__name__)
 
-    ping_reset(logger)
-    ping_plus(logger)
-    ping_minus(logger)
-    ping_set(logger)
-    ping_get(logger)
+    ping_reset(logger, client)
+    ping_plus(logger, client)
+    ping_minus(logger, client)
+    ping_set(logger, client)
+    ping_get(logger, client)
 
     logger.info("All ping tests passed!")
 
