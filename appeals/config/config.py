@@ -7,6 +7,7 @@ class Config:
     api_host: str = '127.0.0.1'
     api_port: int = 8000
     db_path: str = 'data.db'
+    admin_passwd: str = 'admin'
     
     @classmethod
     def load_from_env(cls):
