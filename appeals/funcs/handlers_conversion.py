@@ -1,3 +1,6 @@
+from fastapi.responses import Response
+from fastapi import Depends
+from appeals.core.common import authenticate
 from typing import (
     List,
     Sequence
@@ -7,7 +10,6 @@ from fastapi import (
     UploadFile,
     File
 )
-from fastapi.responses import Response
 from appeals.core.schemas import (
     ConversionCreateBody,
     ConversionStatusUpdateBody,
@@ -29,7 +31,7 @@ from appeals.db.conversion import (
 
 
 async def create_conversion_handler(
-        body: ConversionCreateBody
+    body: ConversionCreateBody
 ) -> List[ConversionDetail]:
     conv = await create_conversion(
         user_id=body.user_id,
@@ -81,21 +83,23 @@ async def pin_file_conversion_handler(
     return [ConversionText(**conv)]
 
 
-async def get_all_conversions_handler() -> List[ConversionDetail]:
+async def get_all_conversions_handler(
+    _username: str = Depends(authenticate)
+) -> List[ConversionDetail]:
     convs = await get_all_conversions()
     return [ConversionDetail(**conv) for conv in convs]
 
 
 async def get_user_conversions_handler(
-        user_id: int
+    user_id: int
 ) -> List[ConversionBrief]:
     convs = await get_conversions(user_id)
     return [ConversionBrief(**conv) for conv in convs]
 
 
 async def view_conversion_handler(
-        user_id: int,
-        conversion_id: int
+    user_id: int,
+    conversion_id: int
 ) -> List[ConversionText]:
     conv = await view_conversion(
         user_id,
@@ -139,6 +143,7 @@ async def set_status_conversion_handler(
     user_id: int,
     conversion_id: int,
     body: ConversionStatusUpdateBody,
+    _username: str = Depends(authenticate)
 ) -> List[ConversionDetail]:
     updated = await set_status_conversion(
         user_id,
@@ -159,8 +164,9 @@ async def set_status_conversion_handler(
 
 
 async def del_conversion_handler(
-        user_id: int,
-        conversion_id: int
+    user_id: int,
+    conversion_id: int,
+    _username: str = Depends(authenticate)
 ):
     deleted = await del_conversion(
         user_id,
