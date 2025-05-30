@@ -29,14 +29,15 @@ python -m venv .venv
 
 The following environment variables control the startup of the project:
 
-| Variable     | Values                              | Description                            |
-|--------------|-------------------------------------|----------------------------------------|
-| `LOG_LEVEL`  | `DEBUG`, `INFO`, `WARNING`, `ERROR` | Logging verbosity.                     |
-| `RELOAD`     | *boolgean*                          | Auto-reload for development.           |
-| `API_HOST`   | *string*                            | API bind address.                      |
-| `API_PORT`   | *integer*                           | API port.                              |
-| `DB_PATH`    | *string*                            | SQLite database file.                  |
-| `TESTS`      | *boolgean*                          | Run tests instead of launching server. |
+| Variable       | Values                              | Description                            |
+|----------------|-------------------------------------|----------------------------------------|
+| `LOG_LEVEL`    | `DEBUG`, `INFO`, `WARNING`, `ERROR` | Logging verbosity.                     |
+| `RELOAD`       | *boolgean*                          | Auto-reload for development.           |
+| `API_HOST`     | *string*                            | API bind address.                      |
+| `API_PORT`     | *integer*                           | API port.                              |
+| `DB_PATH`      | *string*                            | SQLite database file.                  |
+| `TESTS`        | *boolgean*                          | Run tests instead of launching server. |
+| `ADMIN_PASSWD` | *string*                            | Set password for admin funcs.          |
 
 ## Features
 
