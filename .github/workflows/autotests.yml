@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - dev
     paths-ignore:
       - 'readme.md'
   workflow_dispatch:
@@ -24,3 +23,10 @@ jobs:
           TESTS: "True" 
           DB_PATH: ":memory:"
         run: uv run appeals
+
+      - name: Trigger docker-publish
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          event-type: docker-publish
