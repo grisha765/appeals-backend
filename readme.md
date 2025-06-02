@@ -9,7 +9,7 @@ A small asynchronous FastAPI service for tracking 'appeals' – simple text requ
 
 ```shell
 git clone https://github.com/grisha765/appeals-backend.git
-cd downloader_tg_py
+cd appeals-backend
 python -m venv .venv
 .venv/bin/python -m pip install uv
 .venv/bin/python -m uv sync
